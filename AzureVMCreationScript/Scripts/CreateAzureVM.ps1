@@ -541,7 +541,7 @@ try {
         Logging -Log "The Username is: $($VmCred.UserName) " -MessageType $Information
         Logging -Log "The Public ip: $($PipAddr.IpAddress) " -MessageType $Information
         Logging -Log "The DNS name is: $($GetPip.DnsSettings.Fqdn) " -MessageType $Information
-        mstsc /v:$($PipAddr.IpAddress)
+        mstsc /v:$($PipAddr.IpAddress) | Out-Null
         Logging -Log "Connection to the VM enstablished" -MessageType $Information
     }
     else{
