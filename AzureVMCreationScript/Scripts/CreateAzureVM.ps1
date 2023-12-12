@@ -345,10 +345,10 @@ try {
         Tag = $Tags
     }
     New-AzResourceGroup @ResourceGroupParam | Out-Null -ErrorAction Stop
-    Logging -Log "RG created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "RG created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the Subnet configuration
@@ -357,11 +357,10 @@ try {
         AddressPrefix = $SubnetAddressPrefix
     }
     $Subnet = New-AzVirtualNetworkSubnetConfig @SubnetParam -ErrorAction Stop
-    Logging -Log "Subnet configuration created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
-
+    Logging -Log "Subnet configuration created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the VNET
@@ -374,10 +373,11 @@ try {
         Tag = $Tags
     }
     $Vnet = New-AzVirtualNetwork @VnetParam -ErrorAction Stop
-    Logging -Log "VNET created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "VNET created\configured!" -MessageType $Information
+
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the PIP
@@ -391,10 +391,10 @@ try {
         Tag = $Tags
     }
     $Pip = New-AzPublicIpAddress @PipParam -ErrorAction Stop
-    Logging -Log "PIP created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "PIP created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the RDP Rule for the NSG
@@ -410,10 +410,10 @@ try {
         Access = "Allow"
     }
     $NsgRuleRDP = New-AzNetworkSecurityRuleConfig @NsgRuleRDPParam -ErrorAction Stop
-    Logging -Log "NSG Rule created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "NSG Rule created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the NSG
@@ -425,10 +425,10 @@ try {
         Tag = $Tags
     }
     $Nsg = New-AzNetworkSecurityGroup @NsgParam -ErrorAction Stop
-    Logging -Log "NSG created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "NSG created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation\Configuration of the NIC
@@ -442,10 +442,10 @@ try {
         Tag = $Tags
     }
     $Nic = New-AzNetworkInterface @NicParam -ErrorAction Stop
-    Logging -Log "NIC created\configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "NIC created\configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Configuration of all the parameters of the VM
@@ -454,10 +454,10 @@ try {
         VMSize = $VmSize
     } 
     $Vm = New-AzVMConfig @VmConfigParam -ErrorAction Stop
-    Logging -Log "Parameters of the VM configured!" -MessageType $Information
 
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "Parameters of the VM configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Defining VM credential
@@ -476,10 +476,10 @@ try {
         EnableAutoUpdate = $null
     }
     $Vm = Set-AzVMOperatingSystem @VmOsParam -ErrorAction Stop
-    Logging -Log "OS of the VM configured!" -MessageType $Information
-
+    
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "OS of the VM configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     $VmNicParam = @{
@@ -487,10 +487,10 @@ try {
         Id = $Nic.Id
     }
     $Vm = Add-AzVMNetworkInterface @VmNicParam -ErrorAction Stop
-    Logging -Log "NIC of the VM configured!" -MessageType $Information
-
+    
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "NIC of the VM configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     $VmImageParam = @{
@@ -501,10 +501,10 @@ try {
         Version = 'latest'
     }
     $Vm = Set-AzVMSourceImage @VmImageParam -ErrorAction Stop
-    Logging -Log "Source Image of the VM configured!" -MessageType $Information
-
+    
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "Source Image of the VM configured!" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     # Creation of the VM
@@ -515,11 +515,12 @@ try {
         Verbose = $null
         Tag = $Tags
     }
-    New-AzVM @VMCreationParam -ErrorAction Stop
-    Logging -Log "VM created" -MessageType $Information
-
+    Logging -Log "Creating the VM" -MessageType $Information
+    Logging -Log "This may take a while..." -MessageType $Information
+    New-AzVM @VMCreationParam | Out-Null -ErrorAction Stop
     # Wait the resource to be created
     Get-Job | Wait-Job
+    Logging -Log "VM created" -MessageType $Information
 
     # -------------------------------------------------------------------------------------------------------------
     $Conn = Read-Host "Do you want to connect to the machine? (Yes/No)"
@@ -536,6 +537,7 @@ try {
         $GetPip = Get-AzPublicIpAddress -Name $PipName
         
 
+        # A little sum of the information to keep in mind
         Logging -Log "The Username is: $($VmCred.UserName) " -MessageType $Information
         Logging -Log "The Public ip: $($PipAddr.IpAddress) " -MessageType $Information
         Logging -Log "The DNS name is: $($GetPip.DnsSettings.Fqdn) " -MessageType $Information
@@ -550,5 +552,5 @@ try {
 # If there is an error it switches to this block and exit the program
 catch {
     Logging -Log "Something went wrong. " -MessageType $Err
-    Logging -Log " Error: $($_.Exception.Message)" -MessageType $Debug
+    Logging -Log "Error: $($_.Exception.Message)" -MessageType $Debug
 }
