@@ -47,6 +47,6 @@ To provision the Azure VM, follow these steps:
 
 **Giacomo Caruso** 👨‍💻
 
-For any questions or issues, feel free to contact the author.
+For any questions or issues, feel free to contact me.
 
 Enjoy your Azure VM creation experience! 🎉
