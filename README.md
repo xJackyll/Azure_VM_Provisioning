@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to the Azure VM Creation project! 🚀 This repository allows you to effortlessly provision a Windows Server virtual machine in your Azure subscription. Please take a moment to review the information below before executing the provided scripts.
+Welcome to the Azure VM Creation project! 🚀 This repository allows you to effortlessly provision a Windows Server Virtual Machine in your Azure subscription. Please take a moment to review the information below before executing the provided scripts.
 
 ### Prerequisites
 
