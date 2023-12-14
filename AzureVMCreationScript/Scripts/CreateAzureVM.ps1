@@ -1,6 +1,16 @@
-# Data Creazione: 06/06/2023
-# Versione: 1.0
-# Autore: Giacomo Caruso 
+# CreateAzureVM.ps1
+#
+# Date Created: 11/07/2023
+# Last Modified: 14/07/2023
+# Version: 1.0
+# Author: Giacomo Caruso 
+#
+# This script creates a Windows Server virtual machine on Microsoft Azure
+# with all the necessary components and also has numerous customization options.
+# 
+#
+#
+# N.B. Do not edit the script if you are not clear on what you are doing.  
 
 
 # Set this variable to $true/$false for seeing/stop seeing debug messages
@@ -113,6 +123,45 @@ Function Logging {
 }
 
 
+Function SubscriptionChange {
+    # Getting all the Az Subscriptions
+    $SubList = Get-AzSubscription
+
+    for ($i = 1; $i -le 3; $i++) {
+        try {     
+            # List the subscription names
+            Write-Host "Select a subscription:"
+            for ($i = 0; $i -lt $SubList.Count; $i++) {
+                Write-Host "$($i + 1). $($SubList[$i].Name)"
+            }
+
+            # The user chooses a subscription
+            $SubSelected = Read-Host "Enter the number of the subscription you want to select"
+
+            if ($SubSelected -ge 1 -and $SubSelected -le $SubList.Count) {
+                $SelectedSubscription = $SubList[$SubSelected - 1]
+                Logging -Log "You selected: $($SelectedSubscription.Name)" -MessageType $Information
+            } 
+            else {
+                Logging -Log "Invalid selection. Please enter a valid number." -MessageType $Err
+                throw
+            }
+
+            # If both are valid return them
+            return $($SelectedSubscription.Id), $($SelectedSubscription.Name)
+        }
+
+        catch {
+            #If username or pasword are invalid we enter the catch and redo the for loop
+            Logging -Log "Retry" -MessageType $Warning
+        }
+    }
+    # If the don't enter valid credentials after 3 try the script exits
+    Logging -Log "Too many attempts. quitting the script" -MessageType $Err
+    return $null
+}
+
+
 # VM Username check Function
 Function UsernameCheck {
     param (
@@ -134,8 +183,8 @@ Function UsernameCheck {
     }
 
     # Check if the username length is between 1 and 64 characters
-    $length = $Username.Length
-    if ($length -lt 1 -or $length -gt 64) {
+    $Length = $Username.Length
+    if ($Length -lt 1 -or $Length -gt 64) {
        Logging -Log "Error: Username must be between 1 and 64 characters long." -MessageType $Err
         return $false
     }
@@ -158,20 +207,20 @@ Function PasswordCheck {
     }
 
     # Check if the password meets the complexity requirements with regex
-    $lowercase = $Password -cmatch '[a-z]'
-    $uppercase = $Password -cmatch '[A-Z]'
-    $number = $Password -cmatch '\d'
-    $specialChar = $Password -cmatch '[^\w\d]'
-    $complexityCount = [int]($lowercase + $uppercase + $number + $specialChar)
+    $Lowercase = $Password -cmatch '[a-z]'
+    $Uppercase = $Password -cmatch '[A-Z]'
+    $Number = $Password -cmatch '\d'
+    $SpecialChar = $Password -cmatch '[^\w\d]'
+    $ComplexityCount = [int]($Lowercase + $Uppercase + $Number + $SpecialChar)
 
-    if ($complexityCount -lt 3) {
+    if ($ComplexityCount -lt 3) {
        Logging -Log "Error: Password must have at least 3 of the following: lower case, upper case, number, special character." -MessageType $Err
         return $false
     }
 
     # Check if the password length is between 12 and 72 characters
-    $length = $Password.Length
-    if ($length -lt 12 -or $length -gt 72) {
+    $Length = $Password.Length
+    if ($Length -lt 12 -or $Length -gt 72) {
        Logging -Log "Error: Password must be between 12 and 72 characters long." -MessageType $Err
         return $false
     }
@@ -232,7 +281,7 @@ Logging -Log "THIS SCRIPT CREATE A WINDOWS SERVER VIRTUALE MACHINE WITH ALL THE 
 try {
     # Checking if the Log folder exists
     if (!(Test-Path -Path $LogPathFolder)) {
-        Logging -Log "Log folder not found" -MessageType $Err
+        Logging -Log "Log folder not found! Aborting..." -MessageType $Err
         throw
     }
 
@@ -268,6 +317,35 @@ try {
     Logging -Log "Connected to Azure" -MessageType $Debug
 
     # -------------------------------------------------------------------------------------------------------------
+
+
+    # Getting the Az Subscription currently in use
+    $SubInUse = Get-AzContext
+    Logging -Log "The currently subscription in use is $($SubInUse.Subscription.Name)." -MessageType $Information
+
+    # Check if the user want to change Sub
+    if ((Read-Host " Do you want to change it? (Yes\No)") -ieq "Yes") {
+        Logging -Log "Changing the subscription..." -MessageType $Debug
+
+        # Changing Sub
+        $SelectedSubscriptionId, $SelectedSubscriptionName = SubscriptionChange
+        Set-AzContext -Subscription $SelectedSubscriptionId | Out-Null
+        if ($null -eq $SelectedSubscriptionId, $SelectedSubscriptionName) {throw}
+        Logging -Log "Subscription successfully changed with $SelectedSubscriptionName" -MessageType $Information
+    }
+    else {
+        Logging -Log "Staying in the same subscription" -MessageType $Information
+    }
+
+
+
+    # Check if a previus VM make conflict
+    if (Get-AzVM -ResourceGroupName $RgName -Name $VmName -ErrorAction Ignore) {
+        Logging -Log "There is already a VM with the name $VmName in the Resource Group $RgName! Aborting..." -MessageType $Err
+        throw
+
+    }
+
 
     $PresetConf = Read-Host "Do you want to use the preset configuration? (Yes/No)"
     if ($PresetConf -ieq "Yes") {
@@ -517,6 +595,7 @@ try {
     }
     Logging -Log "Creating the VM" -MessageType $Information
     Logging -Log "This may take a while..." -MessageType $Information
+    Logging -Log "It will also be created a storage acount for boot diagnostics" -MessageType $Debug
     New-AzVM @VMCreationParam | Out-Null -ErrorAction Stop
     # Wait the resource to be created
     Get-Job | Wait-Job
@@ -541,7 +620,7 @@ try {
         Logging -Log "The Username is: $($VmCred.UserName) " -MessageType $Information
         Logging -Log "The Public ip: $($PipAddr.IpAddress) " -MessageType $Information
         Logging -Log "The DNS name is: $($GetPip.DnsSettings.Fqdn) " -MessageType $Information
-        mstsc /v:$($PipAddr.IpAddress)
+        mstsc /v:$($PipAddr.IpAddress) | Out-Null
         Logging -Log "Connection to the VM enstablished" -MessageType $Information
     }
     else{
