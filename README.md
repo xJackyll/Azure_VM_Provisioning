@@ -44,7 +44,7 @@ To provision the Azure VM, follow these steps:
 3. Run 🏃‍♂️ `CreateCred.ps1` to create the `Credential.xml` file if you don't have one (optional).
 4. Execute 🚀 `CreateAzureVM.ps1` to initiate the VM creation process.
 
-If you still are having problems running the script consider running it as Admin.
+If you are having problems running the script consider running it as Admin.
 
 ## Author
 
