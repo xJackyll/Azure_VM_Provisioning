@@ -29,9 +29,9 @@ ProjectRoot
 
 This project relies on a specific folder and file structure. To ensure proper functionality, **DO NOT** modify:
 
-- Folder names.
-- File names.
-- The structure outlined in the "Project Structure" section.
+- Folder & File names.
+- The Data in the Files .
+- The Structure outlined in the "Project Structure" section.
 
 Any alterations to these elements may lead to unexpected behavior and could compromise the project's functionality.
 
@@ -39,9 +39,12 @@ Any alterations to these elements may lead to unexpected behavior and could comp
 
 To provision the Azure VM, follow these steps:
 
-1. Navigate to the `Scripts` directory.
-2. Run 🏃‍♂️ `CreateCred.ps1` to create the `Credential.xml` file if you don't have one (optional).
-3. Execute 🚀 `CreateAzureVM.ps1` to initiate the VM creation process.
+1. Make sure you have **Powershell** updated to the latest version
+2. Navigate to the `Scripts` directory.
+3. Run 🏃‍♂️ `CreateCred.ps1` to create the `Credential.xml` file if you don't have one (optional).
+4. Execute 🚀 `CreateAzureVM.ps1` to initiate the VM creation process.
+
+If you still are having problems running the script consider running it as Admin.
 
 ## Author
 
